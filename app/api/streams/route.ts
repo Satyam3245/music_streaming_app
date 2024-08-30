@@ -1,6 +1,7 @@
 import prisma from "@/lib/db";
 import { streamSchema } from "@/lib/zodvalidator";
-import { copyFileSync } from "fs";
+//@ts-ignore
+import youtubesearchapi from "youtube-search-api";
 import { NextRequest, NextResponse } from "next/server";
 const YT_REGEX = /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 export async function POST(req:NextRequest){
@@ -23,7 +24,10 @@ export async function POST(req:NextRequest){
             })
         }
         const extractId = data.data?.url.split("?v=")[1];
-        console.log(extractId);
+        const res = await youtubesearchapi.GetVideoDetails(extractId);
+        console.log(res.title);
+        console.log(JSON.stringify(res.thumbnail.thumbnails));
+        const thumbnail = res.thumbnail.thumbnails;
         const stream = await prisma.stream.create({
             data:{
                 url:data.data?.url,
