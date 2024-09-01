@@ -33,7 +33,8 @@ export async function POST(req:NextRequest){
                 url:data.data?.url,
                 userId : data.data?.creatorId,
                 extractId : extractId,
-                type : "Youtube"
+                type : "Youtube",
+                title : res.title
             }
         })
         return NextResponse.json({
