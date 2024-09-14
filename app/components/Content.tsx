@@ -23,7 +23,7 @@ export const LandingContent = ()=>{
               </div>
               <div className="space-x-4">
                 <Button className="bg-purple-600 text-white hover:bg-purple-700" onClick={()=>{
-                    {session.data?.user ? router.push('/') :signIn()}
+                    {session.data?.user ? router.push('/dashboard') :signIn()}
                 }}>Get Started</Button>
               </div>
             </div>
