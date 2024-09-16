@@ -2,9 +2,11 @@
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Music } from "lucide-react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 export const AppBar = () => {
     const session = useSession();
+    const router = useRouter();
     return <header className="px-4 lg:px-6 h-14 flex items-center bg-black text-white">
         <Link className="flex items-center justify-center" href="/">
             <Music className="h-6 w-6 text-purple-400" />
