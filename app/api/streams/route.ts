@@ -3,6 +3,7 @@ import { streamSchema } from "@/lib/zodvalidator";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
 import { NextRequest, NextResponse } from "next/server";
+import { error } from "console";
 const YT_REGEX = /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
 export async function POST(req:NextRequest){
     const body = await req.json();
@@ -25,8 +26,6 @@ export async function POST(req:NextRequest){
         }
         const extractId = data.data?.url.split("?v=")[1];
         const res = await youtubesearchapi.GetVideoDetails(extractId);
-        console.log(res.title);
-        console.log(JSON.stringify(res.thumbnail.thumbnails));
         const thumbnail = res.thumbnail.thumbnails;
         const stream = await prisma.stream.create({
             data:{
@@ -34,18 +33,26 @@ export async function POST(req:NextRequest){
                 userId : data.data?.creatorId,
                 extractId : extractId,
                 type : "Youtube",
-                title : res.title
+                title : res.title,
+                smallImg: res.thumbnail.thumbnails[2].url,
+                bigImg : res.thumbnail.thumbnails[3].url
+            },
+            select:{
+                title: true,
+                smallImg:true,
+                bigImg : true,
+                url : true,
+                id : true
             }
-        })
-        return NextResponse.json({
-            message:'Stream is Added',
-            id :  stream.id
-        })
+        });
+        
+        return NextResponse.json([stream]);
     } catch (e) {
+        console.log(e);
         return NextResponse.json({
             message:'Error while adding Streams'
         },{
-            status:411
+            status:500
         })
     }
 }
