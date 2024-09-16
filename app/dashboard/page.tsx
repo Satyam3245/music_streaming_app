@@ -2,18 +2,21 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { ThumbsUp, ThumbsDown, Trash2 } from "lucide-react"
+import { ThumbsUp, ThumbsDown, Trash2 } from "lucide-react";
+import axios from 'axios';
 import Image from "next/image";
 interface Video {
     id: string
     url: string
     votes: number
     title: string
+    smallImg : string
+    bigImg : string
 }
 
 export default function Dashboard() {
@@ -35,22 +38,32 @@ export default function Dashboard() {
 }
 
 const Content = ()=>{
+    const session = useSession();
     const [videos, setVideos] = useState<Video[]>([])
-    const [inputUrl, setInputUrl] = useState('')
+    const [url, setInputUrl] = useState('');
+    const [loader , setLoader] = useState<boolean>(false);
+    const [error , setError] = useState<boolean>(false);
+    //@ts-ignore
+    const creatorId = session.data?.user?.id;
+    const addVideo = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      try {
+        setLoader(true); // Start loader
+        const user = await axios.post('http://localhost:3000/api/streams', {
+          creatorId,
+          url,
+        });
+        setInputUrl(''); 
+        console.log(user.data)
+        setVideos(user.data)
 
-  const addVideo = () => {
-    if (inputUrl.trim() !== '') {
-      const videoId = inputUrl.split('v=')[1]
-      const newVideo = {
-        id: videoId,
-        url: inputUrl,
-        votes: 0,
-        title: `Video ${videoId.substring(0, 6)}...` // Mock title, replace with actual API call in production
+      } catch (error) {
+        setError(true); 
+      } finally {
+        setLoader(false); 
       }
-      setVideos([...videos, newVideo])
-      setInputUrl('')
-    }
-  }
+    };
 
   const vote = (id: string, amount: number) => {
     setVideos(videos.map(video => 
@@ -62,6 +75,18 @@ const Content = ()=>{
     setVideos(videos.filter(video => video.id !== id))
   }
 
+  if(loader){
+    return <div>
+        Loading ...
+    </div>
+  }
+
+  if(error){
+    return <div>
+      Error is Occurred..
+    </div>
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto p-4">
@@ -70,11 +95,12 @@ const Content = ()=>{
           <Input 
             type="text" 
             placeholder="Paste YouTube URL here" 
-            value={inputUrl}
+            value={url}
             onChange={(e) => setInputUrl(e.target.value)}
             className="bg-gray-800 text-gray-100 border-gray-700"
           />
           <Button onClick={addVideo} className="bg-purple-600 hover:bg-purple-700 text-white">Add to Queue</Button>
+          <Button onClick={addVideo} className="bg-purple-600 hover:bg-purple-700 text-white">Delete Stream</Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="col-span-1 md:col-span-2 bg-gray-800 border-gray-700">
@@ -107,7 +133,7 @@ const Content = ()=>{
                   <li key={video.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
                     <div className="flex items-center space-x-2">
                       <Image
-                        src={`https://img.youtube.com/vi/${video.id}/default.jpg`}
+                        src={`${video.smallImg}`}
                         alt={`Thumbnail for ${video.title}`}
                         width={90}
                         height={68}
