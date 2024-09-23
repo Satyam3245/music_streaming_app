@@ -32,13 +32,6 @@ export async function POST(req:NextRequest){
                 extractId : extractId
             }
         });
-        if(streamCheck.length>0){
-            return NextResponse.json({
-                message:'Stream Already Exists'
-            },{
-                status:409
-            })
-        };
         const stream = await prisma.stream.create({
             data:{
                 url:data.data?.url,
@@ -73,7 +66,7 @@ export async function POST(req:NextRequest){
                 title : true,
                 smallImg : true,
                 bigImg : true,
-                url : true
+                extractId : true
             }
         });
         return NextResponse.json(songs)     

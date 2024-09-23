@@ -26,7 +26,10 @@ model Stream{
   userId String
   user User  @relation(fields: [userId],references: [id])
   upvote Upvote[] 
+  Like Int @default(0)
+  DisLike Int @default(0)
 } 
+
 model Upvote {
   id String @id @default(uuid())
   userId String

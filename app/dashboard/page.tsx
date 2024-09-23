@@ -11,9 +11,10 @@ import { ThumbsUp, ThumbsDown, Trash2 } from "lucide-react";
 import { Youtube } from "lucide-react";
 import axios from 'axios';
 import Image from "next/image";
+import { Loader } from "../components/loader";
 interface Video {
     id: string
-    url: string
+    extractId: string
     votes: number
     title: string
     smallImg : string
@@ -98,7 +99,7 @@ const Content = ()=>{
       Error is Occurred..
     </div>
   }
-
+  console.log(videos);
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto p-4">
@@ -124,9 +125,11 @@ const Content = ()=>{
                     <iframe 
                       width="100%" 
                       height="100%" 
-                      src={`https://www.youtube.com/embed/${videos[0].id}`}
+                      // https://www.youtube.com/watch?v=4DfVxVeqk2o
+                      src={`https://www.youtube.com/embed/${videos[0].extractId}`}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
+                      className="rounded-xl"
                     ></iframe>
                   </div>
                   <div className="flex items-center justify-between">
@@ -139,7 +142,7 @@ const Content = ()=>{
           </Card>
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-4">
-              {loader?<div>Loading ...</div>:<div>
+              {loader?<div className="flex items-center justify-center"><Loader/></div>:<div>
                 <h2 className="text-xl font-semibold mb-2 text-gray-100">Playlist</h2>
                 <ul className="space-y-2">
                   {videos.map((video, index) => (
