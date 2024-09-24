@@ -11,3 +11,9 @@ export const voteSchema = z.object({
 export const deleteSchema = z.object({
     creatorId : z.string()
 })
+
+export const uniqueDelSchema = z.object({
+    userId : z.string(),
+    id : z.string() 
+})
+
