@@ -27,11 +27,6 @@ export async function POST(req:NextRequest){
         const extractId = data.data?.url.split("?v=")[1];
         const res = await youtubesearchapi.GetVideoDetails(extractId);
         const thumbnail = res.thumbnail.thumbnails;
-        const streamCheck = await prisma.stream.findMany({
-            where:{
-                extractId : extractId
-            }
-        });
         const stream = await prisma.stream.create({
             data:{
                 url:data.data?.url,
@@ -114,11 +109,39 @@ export async function DELETE(req: NextRequest) {
         });
 
     } catch (error) {
-        console.error('Stream deletion error:', error); // Log the error for better debugging
+        console.error('Stream deletion error:', error); 
         return NextResponse.json({
             message: 'Error while deleting Streams'
         }, {
             status: 500
         });
     }
+}
+
+export async function GET(req: NextRequest) {
+    const {searchParams} = new URL(req.url); 
+    const id = searchParams.get('id');
+    try {
+        const stream = await prisma.stream.findMany({
+            where: {
+                userId: id?? ""
+            },
+            select: {
+                id: true,
+                title: true,
+                smallImg: true,
+                bigImg: true,
+                extractId: true
+            }
+        });
+        return NextResponse.json(stream,{status:200});
+    }
+    catch (e){
+        return NextResponse.json({
+            message:'Error while fetching Streams'
+        },{
+            status:500
+        })  
+    }
+
 }
