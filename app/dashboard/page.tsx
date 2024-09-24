@@ -12,13 +12,15 @@ import { Youtube } from "lucide-react";
 import axios from 'axios';
 import Image from "next/image";
 import { Loader } from "../components/loader";
+import { VideoPlayer } from "../components/videopalyer";
+import { string } from "zod";
 interface Video {
     id: string
-    extractId: string
     votes: number
     title: string
     smallImg : string
     bigImg : string
+    extractId : string
 }
 
 export default function Dashboard() {
@@ -28,6 +30,20 @@ export default function Dashboard() {
         if(status==='unauthenticated'){
             router.push('/');
         }
+        async function getUserVideo(userId: string) {
+          try {
+            const res = await axios.get('http://localhost:3000/api/streams',{
+              params:{
+                userId : userId
+              }
+            })
+            return res.data;
+          } catch (error) {
+            return error;
+          }
+        }
+        //@ts-ignore
+        // add a call redefine all function
     },[status,router]);
     if(status==='loading'){
         return <div>
@@ -46,6 +62,7 @@ const Content = ()=>{
     const [url, setInputUrl] = useState('');
     const [loader , setLoader] = useState<boolean>(false);
     const [error , setError] = useState<boolean>(false);
+    const [videoId , setVideoId] = useState<null|string>(null);
     //@ts-ignore
     const creatorId = session.data?.user?.id;
     const addVideo = async (e: React.FormEvent) => {
@@ -59,13 +76,15 @@ const Content = ()=>{
         });
         setInputUrl(''); 
         setVideos(user.data)
-
+        console.log(user);
       } catch (error) {
+        console.log(error)
         setError(true); 
       } finally {
         setLoader(false); 
       }
     };
+
     const deleteVideo = async (e: React.FormEvent)=>{
       e.preventDefault();
       try {
@@ -85,6 +104,21 @@ const Content = ()=>{
       }
     }
 
+    const delUniqueStream = async (id:string) => {
+      try {
+          const data  = await axios.delete('api/streams/delete',{
+              data:{
+                  userId : creatorId,
+                  id : id
+              }
+          })
+          console.log(data);
+          return data;
+      } catch (error) {
+          return error;
+      }
+  }
+
   const vote = (id: string, amount: number) => {
     setVideos(videos.map(video => 
       video.id === id ? { ...video, votes: video.votes + amount } : video
@@ -94,12 +128,13 @@ const Content = ()=>{
   const removeVideo = (id: string) => {
     setVideos(videos.filter(video => video.id !== id))
   }
+
   if(error){
     return <div>
       Error is Occurred..
     </div>
   }
-  console.log(videos);
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
       <div className="container mx-auto p-4">
@@ -123,13 +158,13 @@ const Content = ()=>{
                 <div className="space-y-2">
                   <div className="aspect-video">
                     <iframe 
-                      width="100%" 
-                      height="100%" 
-                      // https://www.youtube.com/watch?v=4DfVxVeqk2o
                       src={`https://www.youtube.com/embed/${videos[0].extractId}`}
+                      title={videos[0].title}
+                      frameBorder={0}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      className="rounded-xl"
+                      height={}
+                      width={}
                     ></iframe>
                   </div>
                   <div className="flex items-center justify-between">
@@ -146,7 +181,7 @@ const Content = ()=>{
                 <h2 className="text-xl font-semibold mb-2 text-gray-100">Playlist</h2>
                 <ul className="space-y-2">
                   {videos.map((video, index) => (
-                    <li key={video.id} className="flex items-center justify-between bg-gray-700 p-2 rounded">
+                    <button key={video.id} className="flex items-center justify-between bg-gray-700 p-2 rounded-xl hover:bg-gray-600" onClick={()=>{}}>
                       <div className="flex items-center space-x-2">
                         <Image
                           src={`${video.smallImg}`}
@@ -158,23 +193,24 @@ const Content = ()=>{
                         <div>
                           <span className="font-medium text-gray-200 block">{video.title}</span>
                           <span className="text-sm text-gray-400">Votes: {video.votes}</span>
+                          
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="icon" variant="outline" onClick={() => vote(video.id, 1)}
-                                className="bg-gray-600 hover:bg-gray-500 border-gray-500">
+                        <Button size="icon" variant="outline" onClick={()=>{}}
+                                className="bg-gray-600 hover:bg-blue-500 border-gray-500">
                           <ThumbsUp className="h-4 w-4 text-gray-200" />
                         </Button>
-                        <Button size="icon" variant="outline" onClick={() => vote(video.id, -1)}
-                                className="bg-gray-600 hover:bg-gray-500 border-gray-500">
+                        <Button size="icon" variant="outline" onClick={() =>{}}
+                                className="bg-gray-600 hover:bg-blue-500 border-gray-500">
                           <ThumbsDown className="h-4 w-4 text-gray-200" />
                         </Button>
-                        <Button size="icon" variant="outline" onClick={() => removeVideo(video.id)}
-                                className="bg-gray-600 hover:bg-gray-500 border-gray-500">
-                          <Trash2 className="h-4 w-4 text-gray-200" />
+                        <Button size="icon" variant="outline" onClick={() =>{delUniqueStream(video.id)}}
+                                className="bg-red-500 hover:bg-gray-500 border-gray-500">
+                          <Trash2 className="h-4 w-4 text-white" />
                         </Button>
                       </div>
-                    </li>
+                    </button>
                   ))}
                 </ul>
               </div>}
