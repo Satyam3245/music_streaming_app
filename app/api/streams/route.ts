@@ -120,20 +120,31 @@ export async function DELETE(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     const {searchParams} = new URL(req.url); 
-    const id = searchParams.get('id');
+    const id = searchParams.get('userId')?.trim();
+    console.log(id)
+    if(!id){
+        return NextResponse.json({
+            message:'Missing userId Parameter'
+        },{
+            status:400
+        })
+    }
     try {
         const stream = await prisma.stream.findMany({
             where: {
-                userId: id?? ""
-            },
-            select: {
-                id: true,
-                title: true,
-                smallImg: true,
-                bigImg: true,
-                extractId: true
+                userId: id
             }
         });
+        console.log();
+
+        if(stream.length===0){
+            return NextResponse.json({
+                msg :'No Streams Found'
+            },{
+                status:404
+            })
+        }
+
         return NextResponse.json(stream,{status:200});
     }
     catch (e){
