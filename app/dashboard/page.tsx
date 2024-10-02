@@ -43,7 +43,6 @@ export default function Dashboard() {
     //@ts-ignore
     const creatorId = session?.user.id;
 
-
     useEffect(()=>{
       if(status==='unauthenticated'){
           router.push('/');
@@ -65,7 +64,7 @@ export default function Dashboard() {
           iframe.removeEventListener('ended', nextSong);
         }
       };
-    },[status,router, currentVideoIndex, videos]);
+    },[status,router, currentVideoIndex]);
 
     const togglePlayPause = () => {
       setIsPlaying(!isPlaying)
@@ -132,15 +131,22 @@ export default function Dashboard() {
     }
 
     const nextSong = ()=>{
-      const nextIndex = currentVideoIndex +1 % videos.length;
+      const nextIndex = (currentVideoIndex +1);
+      if(nextIndex === videos.length){
+        setCurrentVideoIndex(0);
+        setVideoId(videos[0].extractId);
+        setTitle(videos[0].title);
+        setVotes(videos[0].votes);     
+      }
       setCurrentVideoIndex(nextIndex);
       setVideoId(videos[nextIndex].extractId);
       setTitle(videos[nextIndex].title);
       setVotes(videos[nextIndex].votes);
+      console.log(currentVideoIndex);
     }
 
     const prevSong = ()=>{
-      const prevIndex = currentVideoIndex -1 ;
+      const prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;  
       setCurrentVideoIndex(prevIndex);
       setVideoId(videos[prevIndex].extractId);
       setTitle(videos[prevIndex].title);
@@ -183,7 +189,7 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="aspect-video">
                     <iframe 
-                      src={`https://www.youtube.com/embed/${videoId}`}
+                      src={`https://www.youtube.com/embed/${videos[currentVideoIndex].extractId}`}
                       title={title}
                       frameBorder={0}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -194,8 +200,8 @@ export default function Dashboard() {
                     ></iframe>
                   </div>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium text-gray-200">{title}</h3>
-                    <span className="text-sm font-semibold text-gray-300">Votes: {votes}</span>
+                    <h3 className="text-lg font-medium text-gray-200">{videos[currentVideoIndex].title}</h3>
+                    <span className="text-sm font-semibold text-gray-300">Votes: {videos[currentVideoIndex].votes}</span>
                   </div>
                   <div className="flex items-center space-x-4 justify-center bg-gray-900 p-6 rounded-lg">
                     <Button
