@@ -15,6 +15,7 @@ import { Loader } from "../components/loader";
 import { PlayIcon, PauseIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react"
 import ErrorPage from "../components/error";
 import { getVideoByID } from "@/lib/videoService";
+import YouTubePlayer from "../components/playpausebutton";
 interface Video {
     id: string
     votes: number
@@ -24,7 +25,7 @@ interface Video {
     extractId : string
 }
 
-// Set the title and decription with the help of the useState Hook because you set the extractId in the getVideoByID function
+
 
 export default function Dashboard() {
     const {data:session,status} = useSession();
@@ -37,6 +38,8 @@ export default function Dashboard() {
     const [title , setTitle] = useState<string>('');
     const [votes,setVotes] = useState<number>(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+
     //@ts-ignore
     const creatorId = session?.user.id;
 
@@ -44,6 +47,10 @@ export default function Dashboard() {
     useEffect(()=>{
       if(status==='unauthenticated'){
           router.push('/');
+      }
+      const iframe = document.querySelector('iframe');
+      if (iframe) {
+        iframe.addEventListener('ended', nextSong);
       }
       setLoader(true);
       getVideoByID(creatorId).then((data)=>{
@@ -53,8 +60,12 @@ export default function Dashboard() {
         setVotes(data[0].votes);
         setLoader(false);
       }) 
-
-    },[status,router]);
+      return () => {
+        if (iframe) {
+          iframe.removeEventListener('ended', nextSong);
+        }
+      };
+    },[status,router, currentVideoIndex, videos]);
 
     const togglePlayPause = () => {
       setIsPlaying(!isPlaying)
@@ -113,10 +124,27 @@ export default function Dashboard() {
           })
           const videos = await getVideoByID(creatorId);
           setVideos(videos);
+          console.log(videos);
           setLoader(false);
       } catch (error) {
           setError(true);
       }
+    }
+
+    const nextSong = ()=>{
+      const nextIndex = currentVideoIndex +1 % videos.length;
+      setCurrentVideoIndex(nextIndex);
+      setVideoId(videos[nextIndex].extractId);
+      setTitle(videos[nextIndex].title);
+      setVotes(videos[nextIndex].votes);
+    }
+
+    const prevSong = ()=>{
+      const prevIndex = currentVideoIndex -1 ;
+      setCurrentVideoIndex(prevIndex);
+      setVideoId(videos[prevIndex].extractId);
+      setTitle(videos[prevIndex].title);
+      setVotes(videos[prevIndex].votes);
     }
 
     if(error){
@@ -173,27 +201,17 @@ export default function Dashboard() {
                     <Button
                       variant="outline"
                       size="icon"
+                      onClick={prevSong}
                       className="bg-gray-800 hover:bg-gray-700 text-gray-300"
                     >
                       <SkipBackIcon className="h-4 w-4" />
                       <span className="sr-only">Previous</span>
                     </Button>
+                    <YouTubePlayer videoId={videoId}/>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="bg-gray-800 hover:bg-gray-700 text-gray-300"
-                      onClick={togglePlayPause}
-                    >
-                      {isPlaying ? (
-                        <PauseIcon className="h-4 w-4" />
-                      ) : (
-                        <PlayIcon className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">{isPlaying ? "Pause" : "Play"}</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
+                      onClick={nextSong}
                       className="bg-gray-800 hover:bg-gray-700 text-gray-300"
                     >
                       <SkipForwardIcon className="h-4 w-4" />
