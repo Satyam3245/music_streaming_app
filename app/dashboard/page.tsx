@@ -189,7 +189,7 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="aspect-video">
                     <iframe 
-                      src={`https://www.youtube.com/embed/${videos[currentVideoIndex].extractId}`}
+                      src={`https://www.youtube.com/embed/${videos[currentVideoIndex].extractId}?autoplay=1`}
                       title={title}
                       frameBorder={0}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
